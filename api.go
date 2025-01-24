@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+
 	"github.com/gorilla/mux"
 )
 
@@ -45,7 +47,7 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
-	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccount))
+	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccountById))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -75,10 +77,15 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *APIServer) handleGetAccountById(w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
-
-	fmt.Println(id)
-	account:= NewAccount("meeth","p");
+	idstr := mux.Vars(r)["id"]
+	id,err:= strconv.Atoi(idstr)
+	if(err!=nil){
+		return err
+	}
+	account,err:=s.store.GetAccountByID(id);
+	if(err!=nil){
+		return err
+	}
 	return WriteJSON(w, http.StatusOK, account)
 }
 
